@@ -1,0 +1,27 @@
+name: Helm Deploy
+
+on:
+  push:
+    branches: [ main ]
+    
+jobs:
+  deployment:
+    runs-on: 'ubuntu-latest'
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: 'Deploy'
+      uses: 'deliverybot/helm@v1'
+      with:
+        release: 'dynamic-enablement'
+        namespace: 'dynamic-emablement'
+        chart: 'dynamic-enablement'
+        token: '${{ github.token }}'
+        values: |
+          name: dynEnable
+        value-files: >-
+          [
+            "helm/values/dynamic-enablement/dynamic-enablement.yaml", 
+          ]
+      env:
+        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
