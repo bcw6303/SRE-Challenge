@@ -1,0 +1,39 @@
+=== Architecture Overview
+
+==== Repository Hierarchy
+
+===== /docker
+This directory contains one or more sub-directories, each for a unique application or service.
+Example:
+For the dynamic-enablement application, all resources (app/* and the dockerfile) are contained in docker/dynamic-enablement.
+As new applications and services are added to this solution, they would each get their appropriate sub-directory.
+
+===== /docs
+This directory contains appropriate documentation files in the form of .adoc
+
+===== /helm
+
+For applications being deployed to the cluster, I have made the decision to deploy them via Helm charts.
+In the helm directory, there is a directory called charts and one called values.
+
+====== /charts
+The charts directory contains all of the templates necessary to deploy applications and services through Helm.
+Each sub-directory in /charts is a unique helm chart that contains a templates folder. The templates take parameters fed through a values.yaml file
+and are used in each helm deploy. For testing purposes, the values file has default parameters that are changed depending on the cluster using it (specified in the next sub-directory "/values")
+
+====== /values
+To support scalability and onboarding, the values directory contains sub-directories for each cluster. In the current use case, there is only one sub-directory called "dynamic-enablement".
+It contains all of the helm chart values being used by that cluster and they are picked up as part of the automation deployments. If another cluster needed to be included,
+all that would need to happen is adding a new subdirectory and including any values files necessary for the new cluster.
+The Charts
+
+==== /terraform
+
+The terraform directory contains 2 sub-directories: modules and resources. These are used to create the AWS infrasturture necessary for EKS. For example, the dynamic-enablement terraform resources create an eks-cluster, an eks-node-group, and an ecr.
+
+===== /modules
+Similar to how the charts and values directories work, /modules serves as a template directory that takes values fed in by the associated resource file in /resources. This allows for a slimmed .tf file that contains a small set of modules that can be used multiple times by a resource tf.
+
+===== /resources
+Each resource sub-directory contains one or more sub-directories, each unique to a cluster. Given the current scope of the project, only 1 cluster subdirectory exists per resource. If another cluster were to be added, a new sub-directory would be created and it would contain a new .tf file specific to that cluster.
+
