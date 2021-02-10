@@ -1,0 +1,42 @@
+name: Helm Deploy
+
+on:
+  push:
+    paths: [ helm/** ]
+    
+jobs:
+  deployment:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Dependencies
+        run: |
+          curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+          sudo apt-get install apt-transport-https --yes
+          echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+          sudo apt-get update
+          sudo apt-get install helm
+          
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+      - name: Set Context
+        env:
+          access_key: ${{ secret.AWS_ACCESS_KEY_ID }}
+          secret_key: ${{ secret.AWS_SECRET_ACCESS_KEY }}  
+          region: us-east-2
+          cluster_name: dynamic-enablement
+        run: | 
+          aws --version
+          aws configure set aws_access_key_id $access_key
+          aws configure set aws_secret_access_key $secret_key
+          aws configure set region us-east-2
+          aws configure set output json
+          aws eks --region $region update-kubeconfig --name $cluster_name
+          kubectl get svc
+          cat ~/.kube/config
+      - name: Helm Install
+        run: |
+          helm upgrade calico --install helm/charts/calico --values helm/values/dynamic-enablement/calico.yaml --namespace kube-system
+          helm upgrade dynamic-enablement --install helm/charts/dynamic-enablement --values helm/values/dynamic-enablement/dynamic-enablement.yaml --namespace dynamic-enablement
+          helm upgrade prometheus --install helm/charts/prometheus --values helm/values/dynamic-enablement/prometheus.yaml --namespace prometheus
