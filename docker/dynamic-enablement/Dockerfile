@@ -1,3 +1,3 @@
 FROM nginx
 
-COPY app /usr/share/nginx/html
+COPY docker/dynamic-enablement/app /usr/share/nginx/html
